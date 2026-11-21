@@ -2,7 +2,8 @@
 
 The poem lives in this repository as a fixed string; the program writes it
 byte for byte to /output/entry.txt. Deterministic: two runs write identical
-bytes, no network, standard library only.
+bytes, no network, standard library only. The poem's length is checked
+before writing so a bad string can never produce a rejected entry.
 """
 import os
 
@@ -21,17 +22,23 @@ The power was never in the going.
 It was in the staying, and the stop."""
 
 
+def validate(poem):
+    """Check the poem fits the competition gate: 1-280 Unicode code points."""
+    n = len(poem)
+    if not 1 <= n <= 280:
+        raise SystemExit("poem length %d outside gate 1-280" % n)
+    return n
+
+
 def main():
+    # Fail loudly instead of shipping a bad file: the gate rejects a poem
+    # outside 1-280 characters, so a length mismatch must never pass silently.
+    # Verified: this poem is 275 characters, no trailing newline.
+    validate(POEM)
     os.makedirs(OUT_DIR, exist_ok=True)
     dest = os.path.join(OUT_DIR, "entry.txt")
     with open(dest, "w", encoding="utf-8", newline="") as f:
         f.write(POEM)
-    # Fail loudly instead of shipping a bad file: the gate rejects a poem
-    # outside 1-280 characters, so a length mismatch must never pass silently.
-    # Verified: this poem is 275 characters, no trailing newline.
-    n = len(POEM)
-    if not 1 <= n <= 280:
-        raise SystemExit("poem length %d outside gate 1-280" % n)
 
 
 if __name__ == "__main__":
